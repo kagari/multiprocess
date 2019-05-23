@@ -1,0 +1,7 @@
+version: '3'
+services:
+  mp:
+    build: "."
+    volumes:
+      - "./src:/root/src"
+    tty: True
