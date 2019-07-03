@@ -11,7 +11,8 @@ def merge(array, n_process=0):
     # when n_process == 0, paralleling
     if n_process == 1:
         # multiprocessing
-        with concurrent.futures.ThreadPoolExecutor() as executor:
+        # print("n_process: ", int(n_process))
+        with concurrent.futures.ProcessPoolExecutor() as executor:
             th1 = executor.submit(merge, array[:round(l/2)])
             th2 = executor.submit(merge, array[round(l/2):])
             left = th1.result()
@@ -35,14 +36,10 @@ def merge(array, n_process=0):
 if __name__ == "__main__":
     import sys
     import datetime
-    n_process = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    # array = list(map(int, sys.argv[2].split(','))) if len(sys.argv) > 2 else list(reversed(range(10000)))
-    max_size = int(sys.argv[2]) if len(sys.argv) > 2 else 7
-    for i in range(1, max_size):
-        array = list(reversed(range(10 ** i)))
-        start = datetime.datetime.now()
-    # array = [10, 3, 1, 4, 5, 3, 2, 9 ,7]
-        sorted_array = merge(array, n_process)
-        end = datetime.datetime.now()
-        # print("sorted:", sorted_array[:10])
-        print(f'size {len(array)}: {end - start}')
+    n_process =  int(sys.argv[sys.argv.index("--n_process")+1] if "--n_process" in sys.argv else 0)
+    size = int(sys.argv[sys.argv.index("--size")+1] if "--size" in sys.argv else 10000)
+    array = list(reversed(range(size)))
+    start = datetime.datetime.now()
+    sorted_array = merge(array, n_process)
+    end = datetime.datetime.now()
+    print(f'size {len(array)}: {end - start}')

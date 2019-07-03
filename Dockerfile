@@ -6,8 +6,8 @@ RUN mkdir $HOME/src
 VOLUME $HOME/src
 
 RUN apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y \
-      vim \
       curl \
       python3.7 \
       python3-pip
