@@ -55,7 +55,7 @@ def read_data(root_path, parallel=False):
 
 if __name__ == "__main__":
     DATA_PATH = "../data/"
-    # parallel
+    # non parallel
     read_data(DATA_PATH)
     # parallel
     read_data(DATA_PATH, parallel=True)
