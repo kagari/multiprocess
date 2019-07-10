@@ -1,2 +1,3 @@
 .DS_Store
 project/data/*
+project/src/__pycache__/*
