@@ -46,7 +46,6 @@ def read_data(root_path, parallel=False):
             future_to_data_list = {}
             for data_path, header, data_kind in zip(data_paths, [0, 1, 1], ['rain', 'rx11', 'rx9']):
                 future_to_data_list[executor.submit(_read_csv_data, data_path, header)] = data_kind
-#             future_to_data_list = [executor.submit(_read_csv_data, data_path, header) for data_path, header in zip(data_paths, [0,1,1])]
             results = {}
             for future in concurrent.futures.as_completed(future_to_data_list):
                 results[future_to_data_list[future]] = pd.concat(future.result())
@@ -63,6 +62,8 @@ def read_data(root_path, parallel=False):
 
 
 if __name__ == "__main__":
+    # 速度比較用
+    
     DATA_PATH = "../data/"
     # non parallel
     read_data(DATA_PATH)
