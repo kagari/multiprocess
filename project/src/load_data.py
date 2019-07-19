@@ -63,9 +63,16 @@ def read_data(root_path, parallel=False):
 
 if __name__ == "__main__":
     # 速度比較用
-    
     DATA_PATH = "../data/"
+    
     # non parallel
+    print("Non parallel")
+    start = datetime.datetime.now()
     read_data(DATA_PATH)
+    print(f"During Time; {datetime.datetime.now() - start}")
+    
     # parallel
+    print("On parallel")
+    start = datetime.datetime.now()
     read_data(DATA_PATH, parallel=True)
+    print(f"During Time; {datetime.datetime.now() - start}")
