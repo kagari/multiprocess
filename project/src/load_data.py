@@ -1,12 +1,13 @@
 """
 前処理を行う
 """
-import concurrent.futures
 import pandas as pd
 import datetime
 import glob
 import os
 from pprint import pprint
+from concurrent import futures
+
 
 def _read_csv_data(path_list, header):
     # データを読み込んでみる
@@ -16,9 +17,11 @@ def _read_csv_data(path_list, header):
             df = pd.read_csv(path, header=header)
             result.append(df)
         except (UnicodeDecodeError, pd.errors.ParserError) as e:
-            print(f"{path}, {e}")
+            # print(f"{path}, {e}")
+            pass
                 
     return result
+
 
 def read_data(root_path, parallel=False):
     """
@@ -39,24 +42,37 @@ def read_data(root_path, parallel=False):
     # 並列で処理しやすいようにパスを1つのリストにまとめる
     data_paths = [rain_data_path_list, rx11_data_path_list, rx9_data_path_list]
 
-    if parallel:
+    results = {}
+    if parallel == "Thread":
         # parallelにデータを読む
         start = datetime.datetime.now()
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future_to_data_list = {}
-            for data_path, header, data_kind in zip(data_paths, [0, 1, 1], ['rain', 'rx11', 'rx9']):
-                future_to_data_list[executor.submit(_read_csv_data, data_path, header)] = data_kind
-            results = {}
-            for future in concurrent.futures.as_completed(future_to_data_list):
-                results[future_to_data_list[future]] = pd.concat(future.result())
-        print(f"Multiprocessing During Time; {datetime.datetime.now() - start}")
+        with futures.ThreadPoolExecutor(max_workers=3) as executor:
+            th0 = executor.submit(_read_csv_data, rain_data_path_list, 0, 'rain')
+            th1 = executor.submit(_read_csv_data, rx9_data_path_list, 1, 'rx9')
+            th2 = executor.submit(_read_csv_data, rx11_data_path_list, 1, 'rx11')
+            results['rain'] = pd.concat(th0.result())
+            results['rx9'] = pd.concat(th1.result())
+            results['rx11'] = pd.concat(th2.result())
+        print(f"MultiThread During Time: {datetime.datetime.now() - start}")
+        
+    elif parallel == "Process":
+        # parallelにデータを読む
+        start = datetime.datetime.now()
+        with futures.ProcessPoolExecutor(max_workers=3) as executor:
+            p0 = executor.submit(_read_csv_data, rain_data_path_list, 0, 'rain')
+            p1 = executor.submit(_read_csv_data, rx9_data_path_list, 1, 'rx9')
+            p2 = executor.submit(_read_csv_data, rx11_data_path_list, 1, 'rx11')
+            results['rain'] = pd.concat(p0.result())
+            results['rx9'] = pd.concat(p1.result())
+            results['rx11'] = pd.concat(p2.result())
+        print(f"MultiProcess During Time: {datetime.datetime.now() - start}")
+        
     else:
         # non parallel
         start = datetime.datetime.now()
-        results = {}
         results["rain"] = pd.concat(_read_csv_data(rain_data_path_list, 0))
-        results["rx11"] = pd.concat(_read_csv_data(rx11_data_path_list, 1))
         results["rx9"]  = pd.concat(_read_csv_data(rx9_data_path_list,  1))
+        results["rx11"] = pd.concat(_read_csv_data(rx11_data_path_list, 1))
         print(f"During Time; {datetime.datetime.now() - start}")
     return results
 
@@ -72,7 +88,12 @@ if __name__ == "__main__":
     print(f"During Time; {datetime.datetime.now() - start}")
     
     # parallel
-    print("On parallel")
+    print("On MultiParallel")
+    start = datetime.datetime.now()
+    read_data(DATA_PATH, parallel=True)
+    print(f"During Time; {datetime.datetime.now() - start}")
+
+    print("On MultiThread")
     start = datetime.datetime.now()
     read_data(DATA_PATH, parallel=True)
     print(f"During Time; {datetime.datetime.now() - start}")

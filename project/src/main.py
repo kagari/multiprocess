@@ -12,7 +12,7 @@ rx9 : 18GHz
 """
 
 
-def calc_rainfall(datas, parallel=False):
+def calc_rainfall(datas, parallel=None):
     # 降雨強度データの変換（手順1）
     rain_data = pd.to_numeric(datas['rain']['Recording started.'], errors='coerce')
     rain_data = rain_data * (8/1000+1/3) * 60
@@ -20,15 +20,24 @@ def calc_rainfall(datas, parallel=False):
 
     # 生データを物理量に対応させる（手順2）
     # 10秒毎のデータに変換する（ここが重い
-    if parallel:
+    if parallel == "Process":
         # 並列に実行
         with futures.ProcessPoolExecutor(max_workers=4) as executor:
-            future0 = executor.submit(_translate, datas['rain']['Recording started.'], 'rain')
-            future1 = executor.submit(_translate, datas['rx9'][' 1803_RX_LEVEL'], 'rx9')
-            future2 = executor.submit(_translate, datas['rx11'][' MX_RX_LEVEL'], 'rx11')
-            rain_data = future0.result()
-            rx9_data = future1.result()
-            rx11_data = future2.result()
+            p0 = executor.submit(_translate, datas['rain']['Recording started.'], 'rain')
+            p1 = executor.submit(_translate, datas['rx9'][' 1803_RX_LEVEL'], 'rx9')
+            p2 = executor.submit(_translate, datas['rx11'][' MX_RX_LEVEL'], 'rx11')
+            rain_data = p0.result()
+            rx9_data = p1.result()
+            rx11_data = p2.result()
+            
+    elif parallel == "Thread":
+        with futures.ThreadPoolExecutor(max_workers=4) as executor:
+            th0 = executor.submit(_translate, datas['rain']['Recording started.'], 'rain')
+            th1 = executor.submit(_translate, datas['rx9'][' 1803_RX_LEVEL'], 'rx9')
+            th2 = executor.submit(_translate, datas['rx11'][' MX_RX_LEVEL'], 'rx11')
+            rain_data = th0.result()
+            rx9_data = th1.result()
+            rx11_data = th2.result()
             
     else:
         # 直列に実行
@@ -80,7 +89,7 @@ def _calc_mean_5sec(df):
 if __name__ == "__main__":
     DATA_PATH = "../data/"
     # parallel
-    datas = read_data(DATA_PATH, parallel=True)
+    datas = read_data(DATA_PATH, parallel="Thread")
 
     # non parallel
     print("Non parallel")
@@ -89,11 +98,16 @@ if __name__ == "__main__":
     print(f"During Time; {dt.now() - start}")
     
     # parallel
-    print("On parallel")
+    print("On MultiProcess")
     start = dt.now()
-    rain_data, rx9_data, rx11_data = calc_rainfall(datas, parallel=True)
+    rain_data, rx9_data, rx11_data = calc_rainfall(datas, parallel="Process")
     print(f"During Time; {dt.now() - start}")
-    
-    print(rain_data.head())
-    print(rx9_data.head())
-    print(rx11_data.head())
+
+    print("On MultiThread")
+    start = dt.now()
+    rain_data, rx9_data, rx11_data = calc_rainfall(datas, parallel="Thread")
+    print(f"During Time; {dt.now() - start}")
+
+    # print(rain_data.head())
+    # print(rx9_data.head())
+    # print(rx11_data.head())
