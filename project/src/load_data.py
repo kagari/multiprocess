@@ -46,7 +46,7 @@ def read_data(root_path, parallel=None):
     if parallel == "Thread":
         # parallelにデータを読む
         start = datetime.datetime.now()
-        with futures.ThreadPoolExecutor(max_workers=3) as executor:
+        with futures.ThreadPoolExecutor(max_workers=4) as executor:
             th0 = executor.submit(_read_csv_data, rain_data_path_list, 0)
             th1 = executor.submit(_read_csv_data, rx9_data_path_list, 1)
             th2 = executor.submit(_read_csv_data, rx11_data_path_list, 1)
@@ -58,7 +58,7 @@ def read_data(root_path, parallel=None):
     elif parallel == "Process":
         # parallelにデータを読む
         start = datetime.datetime.now()
-        with futures.ProcessPoolExecutor(max_workers=3) as executor:
+        with futures.ProcessPoolExecutor(max_workers=4) as executor:
             p0 = executor.submit(_read_csv_data, rain_data_path_list, 0)
             p1 = executor.submit(_read_csv_data, rx9_data_path_list, 1)
             p2 = executor.submit(_read_csv_data, rx11_data_path_list, 1)
@@ -73,7 +73,7 @@ def read_data(root_path, parallel=None):
         results["rain"] = pd.concat(_read_csv_data(rain_data_path_list, 0))
         results["rx9"]  = pd.concat(_read_csv_data(rx9_data_path_list,  1))
         results["rx11"] = pd.concat(_read_csv_data(rx11_data_path_list, 1))
-        print(f"During Time; {datetime.datetime.now() - start}")
+        print(f"Non Parallel During Time; {datetime.datetime.now() - start}")
     return results
 
 
@@ -88,12 +88,12 @@ if __name__ == "__main__":
     print(f"During Time; {datetime.datetime.now() - start}")
     
     # parallel
-    print("On MultiParallel")
+    print("On MultiProcess")
     start = datetime.datetime.now()
-    read_data(DATA_PATH, parallel="Thread")
+    read_data(DATA_PATH, parallel="Process")
     print(f"During Time; {datetime.datetime.now() - start}")
 
     print("On MultiThread")
     start = datetime.datetime.now()
-    read_data(DATA_PATH, parallel="Process")
+    read_data(DATA_PATH, parallel="Thread")
     print(f"During Time; {datetime.datetime.now() - start}")
