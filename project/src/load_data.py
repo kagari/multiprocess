@@ -23,7 +23,7 @@ def _read_csv_data(path_list, header):
     return result
 
 
-def read_data(root_path, parallel=False):
+def read_data(root_path, parallel=None):
     """
     input
     - root_path: データ置き場のルートのパス
@@ -47,9 +47,9 @@ def read_data(root_path, parallel=False):
         # parallelにデータを読む
         start = datetime.datetime.now()
         with futures.ThreadPoolExecutor(max_workers=3) as executor:
-            th0 = executor.submit(_read_csv_data, rain_data_path_list, 0, 'rain')
-            th1 = executor.submit(_read_csv_data, rx9_data_path_list, 1, 'rx9')
-            th2 = executor.submit(_read_csv_data, rx11_data_path_list, 1, 'rx11')
+            th0 = executor.submit(_read_csv_data, rain_data_path_list, 0)
+            th1 = executor.submit(_read_csv_data, rx9_data_path_list, 1)
+            th2 = executor.submit(_read_csv_data, rx11_data_path_list, 1)
             results['rain'] = pd.concat(th0.result())
             results['rx9'] = pd.concat(th1.result())
             results['rx11'] = pd.concat(th2.result())
@@ -59,9 +59,9 @@ def read_data(root_path, parallel=False):
         # parallelにデータを読む
         start = datetime.datetime.now()
         with futures.ProcessPoolExecutor(max_workers=3) as executor:
-            p0 = executor.submit(_read_csv_data, rain_data_path_list, 0, 'rain')
-            p1 = executor.submit(_read_csv_data, rx9_data_path_list, 1, 'rx9')
-            p2 = executor.submit(_read_csv_data, rx11_data_path_list, 1, 'rx11')
+            p0 = executor.submit(_read_csv_data, rain_data_path_list, 0)
+            p1 = executor.submit(_read_csv_data, rx9_data_path_list, 1)
+            p2 = executor.submit(_read_csv_data, rx11_data_path_list, 1)
             results['rain'] = pd.concat(p0.result())
             results['rx9'] = pd.concat(p1.result())
             results['rx11'] = pd.concat(p2.result())
@@ -90,10 +90,10 @@ if __name__ == "__main__":
     # parallel
     print("On MultiParallel")
     start = datetime.datetime.now()
-    read_data(DATA_PATH, parallel=True)
+    read_data(DATA_PATH, parallel="Thread")
     print(f"During Time; {datetime.datetime.now() - start}")
 
     print("On MultiThread")
     start = datetime.datetime.now()
-    read_data(DATA_PATH, parallel=True)
+    read_data(DATA_PATH, parallel="Process")
     print(f"During Time; {datetime.datetime.now() - start}")
