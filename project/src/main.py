@@ -63,12 +63,12 @@ def _translate(data, data_type):
     elif data_type == "rx9":
         numeric_data = numeric_data.map(lambda x: x/2-121 if x >= 0 else (x+256)/2-121)
         rx9_data = _calc_mean_5sec(numeric_data)
-        print(f"during time: {dt.now() - start}")
+        print(f"rx9 during time: {dt.now() - start}")
         return rx9_data
     
     elif data_type == "rx11":
         rx11_data = _calc_mean_5sec(numeric_data)
-        print(f"during time: {dt.now() - start}")
+        print(f"rx11 during time: {dt.now() - start}")
         return rx11_data
     
     else:
@@ -94,19 +94,19 @@ if __name__ == "__main__":
     # non parallel
     print("Non parallel")
     start = dt.now()
-    rain_data, rx9_data, rx11_data = calc_rainfall(datas, parallel=False)
-    print(f"During Time; {dt.now() - start}")
+    rain_data, rx9_data, rx11_data = calc_rainfall(datas, parallel=None)
+    print(f"All Time; {dt.now() - start}")
     
     # parallel
     print("On MultiProcess")
     start = dt.now()
     rain_data, rx9_data, rx11_data = calc_rainfall(datas, parallel="Process")
-    print(f"During Time; {dt.now() - start}")
+    print(f"All Time; {dt.now() - start}")
 
     print("On MultiThread")
     start = dt.now()
     rain_data, rx9_data, rx11_data = calc_rainfall(datas, parallel="Thread")
-    print(f"During Time; {dt.now() - start}")
+    print(f"All Time; {dt.now() - start}")
 
     # print(rain_data.head())
     # print(rx9_data.head())
